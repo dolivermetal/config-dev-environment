@@ -20,7 +20,7 @@ echo ""
 # Define IntelliJ versions
 declare -A IDEA_VERSIONS=(
     ["2019.1.4"]="https://download.jetbrains.com/idea/ideaIC-2019.1.4.tar.gz"
-    ["2024.3.2"]="https://download.jetbrains.com/idea/ideaIC-2024.3.2.tar.gz"
+    ["2025.1.3"]="https://download.jetbrains.com/idea/ideaIC-2025.1.3.tar.gz"
 )
 
 # Function to install IntelliJ version
@@ -130,11 +130,11 @@ echo "📋 Acesso disponível via:"
 echo "───────────────────────────────────────────────────────────────────────"
 echo "   �️  Menu de Aplicativos:"
 echo "       - IntelliJ IDEA Community 2019.1.4"
-echo "       - IntelliJ IDEA Community 2024.3.2"
+echo "       - IntelliJ IDEA Community 2025.1.3"
 echo ""
 echo "   🚀 Linha de comando:"
 echo "       - idea-2019.1.4          # Versão 2019.1.4"
-echo "       - idea-2024.3.2          # Versão 2024.3.2"
+echo "       - idea-2025.1.3          # Versão 2025.1.3"
 echo ""
 echo "💡 Agora você pode abrir o IntelliJ diretamente pelo menu de aplicativos!"
 echo ""
