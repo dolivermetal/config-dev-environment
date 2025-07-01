@@ -27,6 +27,47 @@ fi
 echo "📦 Encontradas ${#JAVA_PATHS[@]} versões de Java:"
 for path in "${JAVA_PATHS[@]}"; do
   echo "   ☕ $(basename $path)"
+echo ""
+
+# Função para instalar certificados na JRE do DBeaver
+install_certs_dbeaver() {
+  echo "🦫 Procurando instalação do DBeaver..."
+
+  # Tenta localizar o executável do DBeaver
+  local dbeaver_path=""
+  if command -v dbeaver &> /dev/null; then
+    dbeaver_path=$(readlink -f "$(command -v dbeaver)")
+  elif [ -d "/opt/dbeaver" ]; then
+    dbeaver_path="/opt/dbeaver/dbeaver"
+  elif [ -d "$HOME/.local/share/DBeaver" ]; then
+    dbeaver_path="$HOME/.local/share/DBeaver/dbeaver"
+  fi
+
+  if [ -z "$dbeaver_path" ] || [ ! -e "$dbeaver_path" ]; then
+    echo "   ❌ DBeaver não encontrado no sistema."
+    return 1
+  fi
+
+  # Tenta localizar a JRE interna do DBeaver
+  local dbeaver_dir="$(dirname "$dbeaver_path")"
+  local dbeaver_jre=""
+  if [ -d "$dbeaver_dir/jre" ]; then
+    dbeaver_jre="$dbeaver_dir/jre"
+  elif [ -d "$dbeaver_dir/../jre" ]; then
+    dbeaver_jre="$dbeaver_dir/../jre"
+  fi
+
+  if [ -z "$dbeaver_jre" ] || [ ! -d "$dbeaver_jre" ]; then
+    echo "   ❌ JRE interna do DBeaver não encontrada."
+    return 1
+  fi
+
+  echo "   ✅ DBeaver encontrado em: $dbeaver_path"
+  echo "   ☕ JRE do DBeaver: $dbeaver_jre"
+
+  # Instala os certificados na JRE do DBeaver
+  install_certs_for_java "$dbeaver_jre"
+}
 done
 echo ""
 
@@ -242,6 +283,10 @@ for JAVA_HOME in "${JAVA_PATHS[@]}"; do
   fi
 done
 
+# Instalar certificados na JRE do DBeaver (se existir)
+echo "🦫 Processando JRE do DBeaver..."
+install_certs_dbeaver
+
 echo "🎉 Instalação concluída!"
 echo ""
 
@@ -260,9 +305,11 @@ echo "💡 Comandos úteis:"
 echo "   🔍 Java: keytool -list -keystore \$JAVA_HOME/lib/security/cacerts"
 echo "   🔍 Sistema: ls -la $SYSTEM_CERT_DIR"
 echo "   🔍 Chrome: certutil -L -d sql:$NSS_DB_DIR"
+echo "   🔍 DBeaver: verificar conexões SSL/TLS no DBeaver"
 echo ""
 echo "🔄 Para aplicar as mudanças:"
 echo "   - Reinicie o navegador Chrome/Chromium"
+echo "   - Reinicie o DBeaver para aplicar os novos certificados"
 echo "   - Aplicações Java usarão automaticamente os novos certificados"
 echo "   - Aplicações do sistema usarão os certificados atualizados"
 
