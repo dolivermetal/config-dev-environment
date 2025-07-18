@@ -85,3 +85,47 @@ fi
 echo ""
 
 
+# Install Terminator
+echo "🖥️ ====================================================================="
+echo "🖥️ INSTALANDO TERMINATOR"
+echo "🖥️ ====================================================================="
+if command -v terminator &> /dev/null; then
+    echo "✅ Terminator já está instalado."
+else
+    echo "🔄 Instalando Terminator..."
+    sudo apt-get update
+    sudo apt-get install -y terminator
+    echo "✅ Terminator instalado com sucesso!"
+fi
+echo ""
+
+
+# Configure bashrc to show git branch
+echo "⚙️ ====================================================================="
+echo "⚙️ CONFIGURANDO BASHRC PARA EXIBIR BRANCH DO GIT"
+echo "⚙️ ====================================================================="
+
+# Check if git branch function already exists in bashrc
+if grep -q "parse_git_branch" ~/.bashrc; then
+    echo "✅ Configuração do git branch já existe no bashrc."
+else
+    echo "🔄 Adicionando configuração do git branch no bashrc..."
+    
+    # Add git branch function and PS1 configuration
+    cat >> ~/.bashrc << 'EOF'
+
+# Function to get current git branch
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
+# Custom PS1 with git branch support (preserving default colors)
+export PS1="\[\033[32m\]\u@\h\[\033[00m\]:\[\033[34m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\]$ "
+EOF
+    
+    echo "✅ Configuração do git branch adicionada ao bashrc!"
+    echo "ℹ️  Reinicie o terminal ou execute 'source ~/.bashrc' para aplicar as mudanças."
+fi
+echo ""
+
+
