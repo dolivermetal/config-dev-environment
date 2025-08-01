@@ -223,6 +223,7 @@ install_certs_for_java() {
   
   # Instalar certificados
   local cert_installed=0
+  local cert_updated=0
   local cert_skipped=0
   
   for cert in "$CERT_DIR"/*.crt "$CERT_DIR"/*.cer; do
@@ -231,30 +232,74 @@ install_certs_for_java() {
     filename=$(basename -- "$cert")
     aliasname="${filename%.*}"
     
-    # Verifica se o certificado já existe
+    # Obter fingerprint do arquivo
+    file_fingerprint=$(get_cert_fingerprint "$cert")
+    if [ -z "$file_fingerprint" ]; then
+      echo "   ❌ Não foi possível obter fingerprint de $filename"
+      continue
+    fi
+
+    # Verificar se o certificado já existe
     if sudo "$KEYTOOL" -list -keystore "$KEYSTORE" -storepass "$STOREPASS" -alias "$aliasname" >/dev/null 2>&1; then
-      echo "   ⏭️  $filename (já existe)"
-      ((cert_skipped++))
+      # Certificado existe, comparar fingerprints
+      keystore_fingerprint=$(get_keystore_cert_fingerprint "$KEYSTORE" "$aliasname" "$STOREPASS" "sudo $KEYTOOL")
+      
+      if [ "$file_fingerprint" = "$keystore_fingerprint" ]; then
+        echo "   ⏭️  $filename (idêntico, ignorando)"
+        ((cert_skipped++))
+        continue
+      else
+        echo "   🔄 $filename (diferente, atualizando...)"
+        # Remover certificado existente
+        if sudo "$KEYTOOL" -delete -keystore "$KEYSTORE" -storepass "$STOREPASS" -alias "$aliasname" >/dev/null 2>&1; then
+          echo "   🗑️  Certificado antigo removido"
+        else
+          echo "   ❌ Erro ao remover certificado antigo"
+          continue
+        fi
+      fi
     else
       echo "   📄 Instalando $filename..."
-      
-      if sudo "$KEYTOOL" -importcert \
-        -alias "$aliasname" \
-        -keystore "$KEYSTORE" \
-        -file "$cert" \
-        -storepass "$STOREPASS" \
-        -noprompt >/dev/null 2>&1; then
+    fi
+    
+    # Instalar/reinstalar certificado
+    if sudo "$KEYTOOL" -importcert \
+      -alias "$aliasname" \
+      -keystore "$KEYSTORE" \
+      -file "$cert" \
+      -storepass "$STOREPASS" \
+      -noprompt >/dev/null 2>&1; then
+      if sudo "$KEYTOOL" -list -keystore "$KEYSTORE" -storepass "$STOREPASS" -alias "$aliasname" >/dev/null 2>&1; then
         echo "   ✅ $filename instalado"
         ((cert_installed++))
       else
-        echo "   ❌ Erro ao instalar $filename"
+        echo "   ❌ Erro na verificação pós-instalação de $filename"
       fi
+    else
+      echo "   ❌ Erro ao instalar $filename"
     fi
   done
   
-  echo "   📊 Instalados: $cert_installed | Ignorados: $cert_skipped"
+  echo "   📊 Instalados: $cert_installed | Atualizados: $cert_updated | Ignorados: $cert_skipped"
   echo ""
   return 0
+}
+
+# Função para obter fingerprint de um certificado
+get_cert_fingerprint() {
+  local cert_file=$1
+  openssl x509 -in "$cert_file" -fingerprint -sha256 -noout 2>/dev/null | cut -d'=' -f2 | tr -d ':'
+}
+
+# Função para obter fingerprint de certificado no keystore
+get_keystore_cert_fingerprint() {
+  local keystore=$1
+  local alias=$2
+  local storepass=$3
+  local keytool=$4
+  
+  "$keytool" -list -v -keystore "$keystore" -storepass "$storepass" -alias "$alias" 2>/dev/null | \
+    grep "SHA256:" | head -n1 | sed 's/.*SHA256: //' | tr -d ' :'
 }
 
 # Instalar certificados em todas as versões do Java
