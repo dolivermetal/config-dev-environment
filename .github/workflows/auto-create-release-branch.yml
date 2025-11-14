@@ -1,0 +1,110 @@
+name: Auto Create Next Release Branch
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  create-next-release:
+    # Only run when a release/* PR is merged (not just closed)
+    # Hotfix merges don't trigger automatic release creation
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Calculate next release version
+        id: next_version
+        run: |
+          MERGED_BRANCH="${{ github.event.pull_request.head.ref }}"
+          echo "Merged branch: $MERGED_BRANCH"
+          
+          # Extract version from merged branch (e.g., release/v1.2.3 or release/1.2.3)
+          VERSION=$(echo "$MERGED_BRANCH" | sed 's/release\///' | sed 's/^v//')
+          echo "Current version: $VERSION"
+          
+          # Split version into major.minor.patch
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          
+          # Increment minor version and reset patch to 0
+          NEXT_MINOR=$((MINOR + 1))
+          NEXT_VERSION="${MAJOR}.${NEXT_MINOR}.0"
+          NEXT_BRANCH="release/v${NEXT_VERSION}"
+          
+          echo "Next version: $NEXT_VERSION"
+          echo "Next branch: $NEXT_BRANCH"
+          
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "branch=$NEXT_BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Check if next release branch already exists
+        id: check_branch
+        run: |
+          NEXT_BRANCH="${{ steps.next_version.outputs.branch }}"
+          
+          if git ls-remote --heads origin "$NEXT_BRANCH" | grep -q "$NEXT_BRANCH"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Branch $NEXT_BRANCH already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Branch $NEXT_BRANCH does not exist yet"
+          fi
+
+      - name: Create next release branch
+        if: steps.check_branch.outputs.exists == 'false'
+        run: |
+          NEXT_BRANCH="${{ steps.next_version.outputs.branch }}"
+          
+          # Update to latest master
+          git checkout master
+          git pull origin master
+          
+          # Create and push new release branch
+          git checkout -b "$NEXT_BRANCH"
+          git push origin "$NEXT_BRANCH"
+          
+          echo "✅ Successfully created branch: $NEXT_BRANCH"
+
+      - name: Comment on merged PR
+        if: steps.check_branch.outputs.exists == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const nextBranch = '${{ steps.next_version.outputs.branch }}';
+            const nextVersion = '${{ steps.next_version.outputs.version }}';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ **Release mergeado com sucesso!**\n\n🎉 A próxima branch de release foi criada automaticamente: \`${nextBranch}\`\n\nTodos os novos PRs devem agora apontar para \`${nextBranch}\` até que esteja pronto para o próximo merge em master.`
+            });
+
+      - name: Summary
+        if: steps.check_branch.outputs.exists == 'false'
+        run: |
+          echo "## ✅ Release Branch Automation Completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Merged Branch**: ${{ github.event.pull_request.head.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Branch Created**: ${{ steps.next_version.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Version**: ${{ steps.next_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Direct all new PRs to \`${{ steps.next_version.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. When ready for production, create PR from \`${{ steps.next_version.outputs.branch }}\` to \`master\`" >> $GITHUB_STEP_SUMMARY
+

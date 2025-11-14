@@ -1,0 +1,38 @@
+name: Pull Request Validation
+
+on: pull_request
+
+jobs:
+  validate-pr-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR branch rules
+        run: |
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+          
+          echo "Base branch (target): $BASE_BRANCH"
+          echo "Head branch (source): $HEAD_BRANCH"
+          
+          # Rule 1: PRs targeting master must come from release/* or hotfix/* branches
+          if [[ "$BASE_BRANCH" == "master" ]]; then
+            if [[ "$HEAD_BRANCH" == release/* || "$HEAD_BRANCH" == hotfix/* ]]; then
+              echo "✅ Valid: PR to master from release or hotfix branch ($HEAD_BRANCH)"
+            else
+              echo "❌ Error: PRs to master must come from a release/* or hotfix/* branch"
+              echo "Current source branch: $HEAD_BRANCH"
+              exit 1
+            fi
+          # Rule 2: All other PRs must target a release/* branch
+          else
+            if [[ "$BASE_BRANCH" == release/* ]]; then
+              echo "✅ Valid: PR targeting release branch ($BASE_BRANCH)"
+            else
+              echo "❌ Error: PRs must target either master or a release/* branch"
+              echo "Current target branch: $BASE_BRANCH"
+              echo "Please retarget this PR to a release/* branch"
+              exit 1
+            fi
+          fi
+          
+          echo "✅ All branch validation checks passed!"
