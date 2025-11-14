@@ -15,6 +15,7 @@ declare -A JAVA_VERSIONS=(
     ["8"]="jdk1.8.0_451"
     ["11"]="jdk-11.0.27"
     ["12"]="jdk-12.0.2"
+    ["14"]="jdk-14.0.2"
     ["17"]="jdk-17.0.15"
     ["21"]="jdk-21.0.7"
     ["24"]="jdk-24.0.1"
@@ -71,6 +72,17 @@ install_java_version() {
                 else
                     echo "   ⚠️  ATENÇÃO: Java 12 requer download manual do Oracle JDK devido ao acordo de licença."
                     echo "   📥 Por favor, baixe manualmente de: https://www.oracle.com/java/technologies/javase/jdk12-archive-downloads.html"
+                    echo "   📂 E coloque o arquivo no diretório: $TMP_DIR/"
+                fi
+                ;;
+            "14")
+                if [ -f "$TMP_DIR/jdk-14.0.2_linux-x64_bin.tar.gz" ]; then
+                    echo "   📦 Arquivo jdk-14.0.2_linux-x64_bin.tar.gz encontrado, extraindo..."
+                    sudo tar -xzf "$TMP_DIR/jdk-14.0.2_linux-x64_bin.tar.gz" -C "$JAVA_INSTALL_DIR"
+                    rm "$TMP_DIR/jdk-14.0.2_linux-x64_bin.tar.gz"
+                else
+                    echo "   ⚠️  ATENÇÃO: Java 14 requer download manual do Oracle JDK devido ao acordo de licença."
+                    echo "   📥 Por favor, baixe manualmente de: https://www.oracle.com/java/technologies/javase/jdk14-archive-downloads.html"
                     echo "   📂 E coloque o arquivo no diretório: $TMP_DIR/"
                 fi
                 ;;
