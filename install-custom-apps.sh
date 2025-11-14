@@ -1,5 +1,33 @@
 #!/bin/bash
 
+# Define temporary directory
+TMP_DIR="./tmp"
+mkdir -p "$TMP_DIR"
+
+# Parse command line arguments
+UPDATE_DBEAVER=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --update-dbeaver)
+      UPDATE_DBEAVER=true
+      echo "🔄 Modo de atualização do DBeaver ativado"
+      shift
+      ;;
+    --help|-h)
+      echo "Uso: $0 [--update-dbeaver] [--help|-h]"
+      echo "  --update-dbeaver    Força a atualização do DBeaver para a versão mais recente"
+      echo "  --help, -h          Mostra esta ajuda"
+      exit 0
+      ;;
+    *)
+      echo "⚠️  Parâmetro desconhecido: $1"
+      echo "Use --help para ver opções disponíveis"
+      shift
+      ;;
+  esac
+done
+
 # Install Google Chrome
 echo "📦 ====================================================================="
 echo "📦 INSTALANDO GOOGLE CHROME"
@@ -23,22 +51,52 @@ echo ""
 echo "🗄️ ====================================================================="
 echo "🗄️ INSTALANDO DBEAVER"
 echo "🗄️ ====================================================================="
-if command -v dbeaver &> /dev/null; then
-    echo "✅ DBeaver já está instalado."
-else
-    echo "🔄 Baixando e instalando DBeaver Community Edition..."
-    
+
+# Function to get installed DBeaver version
+get_installed_dbeaver_version() {
+    if command -v dbeaver &> /dev/null; then
+        local version=""
+        
+        # Try different version commands
+        version=$(dbeaver -V 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -n1)
+        
+        if [ -z "$version" ]; then
+            version=$(dbeaver --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -n1)
+        fi
+        
+        if [ -z "$version" ]; then
+            version=$(dbeaver -version 2>/dev/null | grep -oP '\d+\.\d+\.\d+' | head -n1)
+        fi
+        
+        # Try to get version from dpkg if commands fail
+        if [ -z "$version" ]; then
+            version=$(dpkg -l | grep dbeaver-ce | awk '{print $3}' | grep -oP '\d+\.\d+\.\d+' | head -n1)
+        fi
+        
+        echo "$version"
+    else
+        echo ""
+    fi
+}
+
+# Function to install/update DBeaver
+install_update_dbeaver() {
     # Get the latest DBeaver version
     echo "🌐 Obtendo informações da versão mais recente..."
     DBEAVER_LATEST=$(curl -s https://api.github.com/repos/dbeaver/dbeaver/releases/latest | grep "tag_name" | cut -d '"' -f 4)
     DBEAVER_VERSION=${DBEAVER_LATEST#v}
     
-    echo "📦 Versão mais recente encontrada: $DBEAVER_VERSION"
+    echo "📦 Versão mais recente disponível: $DBEAVER_VERSION"
     
     # Download DBeaver
     DBEAVER_URL="https://github.com/dbeaver/dbeaver/releases/download/$DBEAVER_LATEST/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb"
     echo "🔄 Baixando DBeaver $DBEAVER_VERSION..."
     wget -O $TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb "$DBEAVER_URL"
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ Erro ao baixar DBeaver"
+        return 1
+    fi
     
     echo "🔧 Instalando pacote .deb..."
     sudo dpkg -i $TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb
@@ -47,7 +105,40 @@ else
     sudo apt-get install -f -y
     
     rm -f $TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb
-    echo "✅ DBeaver instalado com sucesso!"
+    echo "✅ DBeaver $DBEAVER_VERSION instalado com sucesso!"
+    return 0
+}
+
+# Check if DBeaver is installed
+if command -v dbeaver &> /dev/null; then
+    INSTALLED_VERSION=$(get_installed_dbeaver_version)
+    
+    if [ -n "$INSTALLED_VERSION" ]; then
+        echo "ℹ️  DBeaver versão $INSTALLED_VERSION está instalado."
+    else
+        echo "ℹ️  DBeaver está instalado (versão não detectada)."
+    fi
+    
+    # Check if update is requested
+    if [ "$UPDATE_DBEAVER" = true ]; then
+        echo "🔄 Verificando atualizações do DBeaver..."
+        
+        # Get latest version
+        DBEAVER_LATEST=$(curl -s https://api.github.com/repos/dbeaver/dbeaver/releases/latest | grep "tag_name" | cut -d '"' -f 4)
+        DBEAVER_LATEST_VERSION=${DBEAVER_LATEST#v}
+        
+        if [ -n "$INSTALLED_VERSION" ] && [ "$INSTALLED_VERSION" = "$DBEAVER_LATEST_VERSION" ]; then
+            echo "✅ DBeaver já está na versão mais recente ($INSTALLED_VERSION)"
+        else
+            echo "🔄 Atualizando DBeaver de $INSTALLED_VERSION para $DBEAVER_LATEST_VERSION..."
+            install_update_dbeaver
+        fi
+    else
+        echo "💡 Use --update-dbeaver para atualizar o DBeaver"
+    fi
+else
+    echo "📦 DBeaver não está instalado. Instalando..."
+    install_update_dbeaver
 fi
 echo ""
 
