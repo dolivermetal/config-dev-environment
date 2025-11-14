@@ -29,8 +29,8 @@ Script orquestrador que executa toda a configuração do ambiente:
 - Google Chrome (se não estiver instalado)
 - KeePassXC (via snap)
 - DBeaver Community Edition (última versão)
-- Múltiplas versões do Java (8, 11, 12, 17, 21, 24)
-- IntelliJ IDEA Community (versões 2019.1.4 e 2024.3.2)
+- Múltiplas versões do Java (8, 11, 12, 14, 17, 21, 24)
+- IntelliJ IDEA Community (versões 2019.1.4 e 2025.1.3)
 - Certificados SSL corporativos
 
 ### 2. Script de Java (`install-java.sh`)
@@ -42,7 +42,7 @@ Instala e configura múltiplas versões do Java com `update-alternatives`:
 ```
 
 **Versões instaladas:**
-- 8, 11, 12, 17, 21, 24
+- 8, 11, 12, 14, 17, 21, 24
 - Configuração automática com `update-alternatives`
 
 ### 3. Script do IntelliJ (`install-intellij.sh`)
@@ -54,7 +54,7 @@ Instala múltiplas versões do IntelliJ IDEA com integração ao desktop:
 ```
 
 **Recursos:**
-- Instalação de versões específicas (2019.1.4 e 2024.3.2)
+- Instalação de versões específicas (2019.1.4 e 2025.1.3)
 - Criação de links simbólicos em `/usr/local/bin`
 - Criação de ícones no menu de aplicativos
 - Detecção dinâmica de versões instaladas
@@ -93,7 +93,7 @@ keytool -list -keystore $JAVA_HOME/lib/security/cacerts
 ```bash
 # Executar versões específicas
 idea-2019.1.4          # Versão 2019.1.4
-idea-2024.3.2          # Versão 2024.3.2
+idea-2025.1.3          # Versão 2025.1.3
 ```
 
 ## 🛠️ Personalização
@@ -113,10 +113,10 @@ declare -A JAVA_VERSIONS=(
 Edite `install-intellij.sh` e adicione ao array:
 ```bash
 declare -A IDEA_VERSIONS=(
-    ["191.8026.42"]="https://download.jetbrains.com/idea/ideaIC-2019.1.4.tar.gz"
-    ["251.26094.121"]="https://download.jetbrains.com/idea/ideaIC-2024.3.2.tar.gz"
+    ["2019.1.4"]="https://download.jetbrains.com/idea/ideaIC-2019.1.4.tar.gz"
+    ["2025.1.3"]="https://download.jetbrains.com/idea/ideaIC-2025.1.3.tar.gz"
     # Nova versão
-    ["XXX.XXXXX.XXX"]="https://download.jetbrains.com/idea/ideaIC-NOVA.tar.gz"
+    ["XXXX.X.X"]="https://download.jetbrains.com/idea/ideaIC-NOVA.tar.gz"
 )
 ```
 
