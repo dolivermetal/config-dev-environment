@@ -1,147 +1,106 @@
 # Ambiente de Desenvolvimento - Scripts de Configuração
 
-Este repositório contém scripts automatizados para configuração completa de um ambiente de desenvolvimento.
+Este repositório contém scripts automatizados para configuração de ambiente de desenvolvimento, com trilhas separadas por sistema operacional.
 
 ## 📁 Estrutura do Projeto
 
 ```
 config-dev-environment/
-├── install-all.sh          # Script principal (orquestrador)
-├── install-java.sh         # Instalação de múltiplas versões do Java
-├── install-intellij.sh     # Instalação de múltiplas versões do IntelliJ IDEA
-├── install-certs.sh        # Importação de certificados SSL
-├── certs/                  # Certificados SSL corporativos
-│   ├── *.cer
-└── tmp/                    # Diretório temporário para downloads
+├── linux/
+│   ├── install-all.sh          # Script principal (orquestrador)
+│   ├── install-certs.sh        # Importação de certificados SSL
+|   ├── install-custom-apps.sh  # Instalação de softwares diversos
+│   ├── install-intellij.sh     # Instalação de múltiplas versões do IntelliJ IDEA
+│   ├── install-java.sh         # Instalação de múltiplas versões do Java
+|   └── README.md               # Documentacao da trilha Linux
+├── windows/
+│   ├── install-all.ps1         # Orquestrador Windows
+│   ├── install-java.ps1        # Instala Java 24 e 26 (OpenJDK)
+│   ├── set-java-version.ps1    # Alterna JAVA_HOME/PATH do usuario
+│   ├── install-intellij.ps1    # Instala IntelliJ 2026.1 + atalho no Menu Iniciar
+│   └── README.md               # Documentacao da trilha Windows
+├── certs/                      # Certificados SSL corporativos
+└── tmp/                        # Diretório temporário para downloads
 ```
 
-## 🚀 Scripts Principais
+## 🚀 Escolha do Sistema Operacional
 
-### 1. Script Principal (`install-all.sh`)
+### Linux
 
-Script orquestrador que executa toda a configuração do ambiente:
+Use os scripts em `linux/`.
 
 ```bash
-./install-all.sh
+./linux/install-all.sh
 ```
 
-**Instala:**
-- Google Chrome (se não estiver instalado)
-- KeePassXC (via snap)
-- DBeaver Community Edition (última versão)
-- Múltiplas versões do Java (8, 11, 12, 14, 17, 21, 24)
-- IntelliJ IDEA Community (versões 2019.1.4 e 2025.1.3)
+Fluxo Linux atual instala:
+- Aplicacoes adicionais (Chrome, KeePassXC, DBeaver e outras do script Linux)
+- Java (multiplas versoes)
+- IntelliJ IDEA (multiplas versoes)
 - Certificados SSL corporativos
 
-### 2. Script de Java (`install-java.sh`)
+### Windows
 
-Instala e configura múltiplas versões do Java com `update-alternatives`:
+No Windows, o escopo foi limitado para Java e IntelliJ.
 
-```bash
-./install-java.sh
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\windows\install-all.ps1
 ```
 
-**Versões instaladas:**
-- 8, 11, 12, 14, 17, 21, 24
-- Configuração automática com `update-alternatives`
+Fluxo Windows instala:
+- Java Temurin/OpenJDK nas versoes 24 e 26
+- Comando para alternar versao ativa do Java (JAVA_HOME e PATH do usuario)
+- IntelliJ IDEA Community 2026.1 em USERPROFILE\opt\idea
+- Atalho executavel no Menu Iniciar
 
-### 3. Script do IntelliJ (`install-intellij.sh`)
+Fluxo Windows nao instala:
+- Chrome, KeePassXC, DBeaver, certificados SSL e demais aplicativos do fluxo Linux
 
-Instala múltiplas versões do IntelliJ IDEA com integração ao desktop:
+## 🎯 Comandos Uteis
 
-```bash
-./install-intellij.sh
-```
-
-**Recursos:**
-- Instalação de versões específicas (2019.1.4 e 2025.1.3)
-- Criação de links simbólicos em `/usr/local/bin`
-- Criação de ícones no menu de aplicativos
-- Detecção dinâmica de versões instaladas
-
-### 4. Script de Certificados (`install-certs.sh`)
-
-Importa certificados SSL em todas as versões do Java:
+### Linux
 
 ```bash
-./install-certs.sh
-```
-
-**Características:**
-- Validação de existência dos certificados
-- Importação dos certificados no Ubuntu
-- Importação dos certificados no Chrome
-- Importação em todas as versões do Java
-- Logs detalhados do processo
-
-
-## 🎯 Comandos Úteis Pós-Instalação
-
-### Java
-```bash
-# Selecionar versão do Java
+# Selecionar versao do Java
 sudo update-alternatives --config java
 
-# Ver versões disponíveis
+# Ver versoes disponiveis
 update-alternatives --list java
 
 # Verificar certificados
 keytool -list -keystore $JAVA_HOME/lib/security/cacerts
 ```
 
-### IntelliJ IDEA
-```bash
-# Executar versões específicas
-idea-2019.1.4          # Versão 2019.1.4
-idea-2025.1.3          # Versão 2025.1.3
-```
+### Windows
 
-## 🛠️ Personalização
+```powershell
+# Instalar apenas Java
+.\windows\install-java.ps1 -Versions 24,26
 
-### Adicionar Nova Versão do Java
-Edite `install-java.sh` e adicione a versão ao array:
-```bash
-declare -A JAVA_VERSIONS=(
-    ["8"]="openjdk-8-jdk"
-    ["11"]="openjdk-11-jdk"
-    # ... versões existentes
-    ["25"]="openjdk-25-jdk"  # Nova versão
-)
-```
+# Listar versoes Java instaladas
+.\windows\set-java-version.ps1 -List
 
-### Adicionar Nova Versão do IntelliJ
-Edite `install-intellij.sh` e adicione ao array:
-```bash
-declare -A IDEA_VERSIONS=(
-    ["2019.1.4"]="https://download.jetbrains.com/idea/ideaIC-2019.1.4.tar.gz"
-    ["2025.1.3"]="https://download.jetbrains.com/idea/ideaIC-2025.1.3.tar.gz"
-    # Nova versão
-    ["XXXX.X.X"]="https://download.jetbrains.com/idea/ideaIC-NOVA.tar.gz"
-)
-```
+# Alternar Java ativo
+.\windows\set-java-version.ps1 -Version 24
+.\windows\set-java-version.ps1 -Version 26
 
-## 📝 Logs e Diagnósticos
-
-### Verificar Instalações
-```bash
-# Status das instalações
-which google-chrome
-which keepassxc
-which dbeaver
-which java
-which idea
-
-# Versões instaladas
-java -version
-google-chrome --version
+# Instalar apenas IntelliJ
+.\windows\install-intellij.ps1 -Version 2026.1
 ```
 
 ## 🔧 Requisitos
 
+### Linux
 - Ubuntu/Debian (testado no Ubuntu)
 - Acesso sudo
-- Conexão com internet
-- Bash 4.0+ (para arrays associativos)
+- Conexao com internet
+- Bash 4.0+ (arrays associativos)
+
+### Windows
+- Windows com PowerShell 5.1+
+- Conexao com internet
+- Permissao para executar scripts na sessao atual (`Set-ExecutionPolicy -Scope Process Bypass`)
 
 ## 📜 Licença
 

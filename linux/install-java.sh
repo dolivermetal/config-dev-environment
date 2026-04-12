@@ -6,7 +6,7 @@ echo "☕ ====================================================================="
 
 # Verifica se TMP_DIR foi definido pelo script principal, senão define um padrão
 if [ -z "$TMP_DIR" ]; then
-    TMP_DIR="tmp"
+    TMP_DIR="../tmp"
     mkdir -p $TMP_DIR
 fi
 
