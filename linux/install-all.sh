@@ -101,7 +101,7 @@ echo "🔒 CONFIGURANDO CERTIFICADOS SSL"
 echo "🔒 ====================================================================="
 
 # Define certificate installation directory
-CERT_SCRIPT_DIR="certs"
+CERT_SCRIPT_DIR="../certs"
 CERT_INSTALL_SCRIPT="install-certs.sh"
 
 # Check if certificate installation script exists
