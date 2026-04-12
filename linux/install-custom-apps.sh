@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define temporary directory
-TMP_DIR="../tmp"
+TMP_DIR="./tmp"
 mkdir -p "$TMP_DIR"
 
 # Parse command line arguments
