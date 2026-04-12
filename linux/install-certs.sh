@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Pasta com os certificados
-CERT_DIR="./certs"
+CERT_DIR="../certs"
 STOREPASS="changeit"
 
 # Diretórios de certificados do sistema
