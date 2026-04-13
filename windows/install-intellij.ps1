@@ -52,11 +52,11 @@ else {
     Write-Host ("Baixando IntelliJ IDEA $Version...")
     Write-Host ("URL: $downloadUrl")
 
-    # if (Test-Path -Path $zipPath) { Remove-Item -Path $zipPath -Force }
-    # if (Test-Path -Path $extractPath) { Remove-Item -Path $extractPath -Recurse -Force }
+    if (Test-Path -Path $zipPath) { Remove-Item -Path $zipPath -Force }
+    if (Test-Path -Path $extractPath) { Remove-Item -Path $extractPath -Recurse -Force }
 
-    # Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath -UseBasicParsing
-    # Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
+    Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath -UseBasicParsing
+    Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
 
     if (-not $extractPath) {
         throw "Diretorio do IntelliJ nao encontrado apos extracao em $extractPath"
@@ -76,16 +76,17 @@ else {
     }
 
     Write-Host ("IntelliJ IDEA $Version instalado em $targetDir") -ForegroundColor Green
-
+    
     $exePath = Join-Path $targetDir 'bin\idea64.exe'
     $iconPath = Join-Path $targetDir 'bin\idea.ico'
+    $workingDir = Join-Path $targetDir 'bin'
     if (-not (Test-Path -Path $iconPath)) {
         $iconPath = $exePath
     }
-
+    
     $shortcutName = "IntelliJ IDEA Community $Version"
-    $shortcutPath = New-StartMenuShortcut -TargetExe $exePath -ShortcutName $shortcutName -WorkingDirectory $targetDir -IconLocation $iconPath
-
+    $shortcutPath = New-StartMenuShortcut -TargetExe $exePath -ShortcutName $shortcutName -WorkingDirectory $workingDir -IconLocation $iconPath
+    
     Write-Host ''
     Write-Host ("Atalho criado no Menu Iniciar: {0}" -f $shortcutPath)
 }
