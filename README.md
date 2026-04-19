@@ -53,6 +53,7 @@ Fluxo Windows instala:
 - Comando para alternar versao ativa do Java (JAVA_HOME e PATH do usuario)
 - IntelliJ IDEA Community 2026.1 em USERPROFILE\opt\idea
 - Atalho executavel no Menu Iniciar
+- Configurações customizadas para o PowerShell
 
 Fluxo Windows nao instala:
 - Chrome, KeePassXC, DBeaver, certificados SSL e demais aplicativos do fluxo Linux

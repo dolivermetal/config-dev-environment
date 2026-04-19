@@ -14,6 +14,7 @@ Write-Host ''
 
 $javaScript = Join-Path $PSScriptRoot 'install-java.ps1'
 $ideaScript = Join-Path $PSScriptRoot 'install-intellij.ps1'
+$customPowershellScript = Join-Path $PSScriptRoot 'custom-powershell.ps1'
 
 if (-not (Test-Path -Path $javaScript)) {
     throw "Script nao encontrado: $javaScript"
@@ -22,12 +23,20 @@ if (-not (Test-Path -Path $ideaScript)) {
     throw "Script nao encontrado: $ideaScript"
 }
 
+if (-not (Test-Path -Path $customPowershellScript)) {
+    throw "Script nao encontrado: $customPowershellScript"
+}
+
 Write-Host 'Executando instalacao do Java...'
 & $javaScript
 
 Write-Host ''
 Write-Host 'Executando instalacao do IntelliJ IDEA...'
 & $ideaScript
+
+Write-Host ''
+Write-Host 'Configurando PowerShell personalizado...'
+& $customPowershellScript
 
 Write-Host ''
 Write-Host 'Configuracao Windows concluida.' -ForegroundColor Green

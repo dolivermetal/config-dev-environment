@@ -8,6 +8,7 @@ Scripts PowerShell para instalação no Windows com escopo controlado.
 - Permite alternar versão ativa do Java por variáveis de ambiente do usuário.
 - Baixa e descompacta IntelliJ IDEA Community 2026.1 em `USERPROFILE\\opt\\idea`.
 - Cria atalho no Menu Iniciar para o IntelliJ.
+- Configurações customizadas para o PowerShell
 
 ## Não faz parte do escopo Windows
 
