@@ -19,6 +19,8 @@ declare -A JAVA_VERSIONS=(
     ["17"]="jdk-17.0.15"
     ["21"]="jdk-21.0.7"
     ["24"]="jdk-24.0.1"
+    ["25"]="jdk-25.0.2"
+    ["26"]="jdk-26"
 )
 
 # Create Java installation directory
@@ -110,6 +112,20 @@ install_java_version() {
                 echo "   📦 Extraindo Java 24..."
                 sudo tar -xzf "$TMP_DIR/jdk-24_linux-x64_bin.tar.gz" -C "$JAVA_INSTALL_DIR"
                 rm "$TMP_DIR/jdk-24_linux-x64_bin.tar.gz"
+                ;;
+            "25")
+                echo "   🌐 Baixando Java 25 automaticamente..."
+                wget -O "$TMP_DIR/jdk-25_linux-x64_bin.tar.gz" "https://download.oracle.com/java/25/latest/jdk-25_linux-x64_bin.tar.gz"
+                echo "   📦 Extraindo Java 25..."
+                sudo tar -xzf "$TMP_DIR/jdk-25_linux-x64_bin.tar.gz" -C "$JAVA_INSTALL_DIR"
+                rm "$TMP_DIR/jdk-25_linux-x64_bin.tar.gz"
+                ;;
+            "26")
+                echo "   🌐 Baixando Java 26 automaticamente..."
+                wget -O "$TMP_DIR/jdk-26_linux-x64_bin.tar.gz" "https://download.oracle.com/java/26/latest/jdk-26_linux-x64_bin.tar.gz"
+                echo "   📦 Extraindo Java 26..."
+                sudo tar -xzf "$TMP_DIR/jdk-26_linux-x64_bin.tar.gz" -C "$JAVA_INSTALL_DIR"
+                rm "$TMP_DIR/jdk-26_linux-x64_bin.tar.gz"
                 ;;
         esac
         
