@@ -17,7 +17,7 @@ CUSTOM_APPS_SCRIPT="./install-custom-apps.sh"
 
 if [ -f "$CUSTOM_APPS_SCRIPT" ]; then
     echo "✅ Script de instalação de aplicações adicionais encontrado: $CUSTOM_APPS_SCRIPT"
-    echo "🔄 Executando instalação e configuração de aplicações adicionais..."
+    echo "🔄 Executando instalação e configuração de aplicações adicionais por alvo..."
     echo ""
     
     # Make the script executable
@@ -26,8 +26,26 @@ if [ -f "$CUSTOM_APPS_SCRIPT" ]; then
     # Export TMP_DIR so the Custom Apps script can use it
     export TMP_DIR
 
-    # Run the Custom Apps installation script
-    bash "$CUSTOM_APPS_SCRIPT"
+    # Run the Custom Apps installation script per target
+    CUSTOM_APP_TARGETS=(
+        "chrome"
+        "dbeaver"
+        "vmware-client"
+        "keepass"
+        "terminator"
+        "bashrc-git-branch"
+        "docker"
+    )
+
+    for target in "${CUSTOM_APP_TARGETS[@]}"; do
+        echo "🔹 Aplicando alvo: $target"
+        if bash "$CUSTOM_APPS_SCRIPT" "$target"; then
+            echo "✅ Alvo concluído: $target"
+        else
+            echo "❌ Falha ao aplicar alvo: $target"
+            exit 1
+        fi
+    done
 
     echo "✅ Instalação de aplicações adicionais concluída!"
 else

@@ -1,56 +1,33 @@
 #!/bin/bash
 
 # Define temporary directory
-TMP_DIR="./tmp"
+TMP_DIR="${TMP_DIR:-./tmp}"
 mkdir -p "$TMP_DIR"
 
-# Parse command line arguments
-UPDATE_DBEAVER=false
-
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --update-dbeaver)
-      UPDATE_DBEAVER=true
-      echo "🔄 Modo de atualização do DBeaver ativado"
-      shift
-      ;;
-    --help|-h)
-      echo "Uso: $0 [--update-dbeaver] [--help|-h]"
-      echo "  --update-dbeaver    Força a atualização do DBeaver para a versão mais recente"
-      echo "  --help, -h          Mostra esta ajuda"
-      exit 0
-      ;;
-    *)
-      echo "⚠️  Parâmetro desconhecido: $1"
-      echo "Use --help para ver opções disponíveis"
-      shift
-      ;;
-  esac
-done
-
-# Install Google Chrome
-echo "📦 ====================================================================="
-echo "📦 INSTALANDO GOOGLE CHROME"
-echo "📦 ====================================================================="
-if command -v google-chrome &> /dev/null; then
-    echo "✅ Google Chrome já está instalado."
-else
-    echo "🔄 Baixando e instalando Google Chrome..."
-    wget -O $TMP_DIR/google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    echo "🔧 Instalando pacote .deb..."
-    sudo dpkg -i $TMP_DIR/google-chrome-stable_current_amd64.deb
-    echo "🔧 Corrigindo dependências..."
-    sudo apt-get install -f
-    rm -f $TMP_DIR/google-chrome-stable_current_amd64.deb
-    echo "✅ Google Chrome instalado com sucesso!"
-fi
-echo ""
-
-
-# Install DBeaver
-echo "🗄️ ====================================================================="
-echo "🗄️ INSTALANDO DBEAVER"
-echo "🗄️ ====================================================================="
+print_usage() {
+    echo "Uso: $0 <alvo> [opcoes]"
+    echo ""
+    echo "Alvos suportados:"
+    echo "  chrome              Instala Google Chrome"
+    echo "  dbeaver             Instala DBeaver (use --update para forcar atualizacao)"
+    echo "  vmware-client       Instala Omnissa Horizon Client"
+    echo "  keepass             Instala KeePassXC via Snap"
+    echo "  terminator          Instala Terminator"
+    echo "  bashrc-git-branch   Configura branch do Git no prompt do bash"
+    echo "  docker              Instala Docker"
+    echo ""
+    echo "Aliases:"
+    echo "  vmware, horizon     Equivalentes a vmware-client"
+    echo "  git-branch, bashrc  Equivalentes a bashrc-git-branch"
+    echo ""
+    echo "Exemplos:"
+    echo "  $0 dbeaver"
+    echo "  $0 dbeaver --update"
+    echo "  $0 docker"
+    echo ""
+    echo "Opcoes gerais:"
+    echo "  -h, --help          Mostra esta ajuda"
+}
 
 # Function to get installed DBeaver version
 get_installed_dbeaver_version() {
@@ -91,7 +68,7 @@ install_update_dbeaver() {
     # Download DBeaver
     DBEAVER_URL="https://github.com/dbeaver/dbeaver/releases/download/$DBEAVER_LATEST/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb"
     echo "🔄 Baixando DBeaver $DBEAVER_VERSION..."
-    wget -O $TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb "$DBEAVER_URL"
+    wget -O "$TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb" "$DBEAVER_URL"
     
     if [ $? -ne 0 ]; then
         echo "❌ Erro ao baixar DBeaver"
@@ -99,111 +76,133 @@ install_update_dbeaver() {
     fi
     
     echo "🔧 Instalando pacote .deb..."
-    sudo dpkg -i $TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb
+    sudo dpkg -i "$TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb"
     
     echo "🔧 Corrigindo dependências..."
     sudo apt-get install -f -y
     
-    rm -f $TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb
+    rm -f "$TMP_DIR/dbeaver-ce_${DBEAVER_VERSION}_amd64.deb"
     echo "✅ DBeaver $DBEAVER_VERSION instalado com sucesso!"
     return 0
 }
 
-# Check if DBeaver is installed
-if command -v dbeaver &> /dev/null; then
-    INSTALLED_VERSION=$(get_installed_dbeaver_version)
-    
-    if [ -n "$INSTALLED_VERSION" ]; then
-        echo "ℹ️  DBeaver versão $INSTALLED_VERSION está instalado."
+install_chrome() {
+    echo "📦 ====================================================================="
+    echo "📦 INSTALANDO GOOGLE CHROME"
+    echo "📦 ====================================================================="
+    if command -v google-chrome &> /dev/null; then
+        echo "✅ Google Chrome já está instalado."
     else
-        echo "ℹ️  DBeaver está instalado (versão não detectada)."
+        echo "🔄 Baixando e instalando Google Chrome..."
+        wget -O "$TMP_DIR/google-chrome-stable_current_amd64.deb" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        echo "🔧 Instalando pacote .deb..."
+        sudo dpkg -i "$TMP_DIR/google-chrome-stable_current_amd64.deb"
+        echo "🔧 Corrigindo dependências..."
+        sudo apt-get install -f -y
+        rm -f "$TMP_DIR/google-chrome-stable_current_amd64.deb"
+        echo "✅ Google Chrome instalado com sucesso!"
     fi
-    
-    # Check if update is requested
-    if [ "$UPDATE_DBEAVER" = true ]; then
-        echo "🔄 Verificando atualizações do DBeaver..."
-        
-        # Get latest version
-        DBEAVER_LATEST=$(curl -s https://api.github.com/repos/dbeaver/dbeaver/releases/latest | grep "tag_name" | cut -d '"' -f 4)
-        DBEAVER_LATEST_VERSION=${DBEAVER_LATEST#v}
-        
-        if [ -n "$INSTALLED_VERSION" ] && [ "$INSTALLED_VERSION" = "$DBEAVER_LATEST_VERSION" ]; then
-            echo "✅ DBeaver já está na versão mais recente ($INSTALLED_VERSION)"
+    echo ""
+}
+
+install_dbeaver() {
+    local update_dbeaver="$1"
+
+    echo "🗄️ ====================================================================="
+    echo "🗄️ INSTALANDO DBEAVER"
+    echo "🗄️ ====================================================================="
+
+    if command -v dbeaver &> /dev/null; then
+        local installed_version
+        installed_version=$(get_installed_dbeaver_version)
+
+        if [ -n "$installed_version" ]; then
+            echo "ℹ️  DBeaver versão $installed_version está instalado."
         else
-            echo "🔄 Atualizando DBeaver de $INSTALLED_VERSION para $DBEAVER_LATEST_VERSION..."
-            install_update_dbeaver
+            echo "ℹ️  DBeaver está instalado (versão não detectada)."
+        fi
+
+        if [ "$update_dbeaver" = "true" ]; then
+            echo "🔄 Verificando atualizações do DBeaver..."
+
+            DBEAVER_LATEST=$(curl -s https://api.github.com/repos/dbeaver/dbeaver/releases/latest | grep "tag_name" | cut -d '"' -f 4)
+            DBEAVER_LATEST_VERSION=${DBEAVER_LATEST#v}
+
+            if [ -n "$installed_version" ] && [ "$installed_version" = "$DBEAVER_LATEST_VERSION" ]; then
+                echo "✅ DBeaver já está na versão mais recente ($installed_version)"
+            else
+                echo "🔄 Atualizando DBeaver de $installed_version para $DBEAVER_LATEST_VERSION..."
+                install_update_dbeaver
+            fi
+        else
+            echo "💡 Use '$0 dbeaver --update' para atualizar o DBeaver"
         fi
     else
-        echo "💡 Use --update-dbeaver para atualizar o DBeaver"
+        echo "📦 DBeaver não está instalado. Instalando..."
+        install_update_dbeaver
     fi
-else
-    echo "📦 DBeaver não está instalado. Instalando..."
-    install_update_dbeaver
-fi
-echo ""
+    echo ""
+}
 
+install_vmware_client() {
+    echo "📦 ====================================================================="
+    echo "📦 INSTALANDO VMWare Workstation Client"
+    echo "📦 ====================================================================="
+    if command -v horizon-client &> /dev/null; then
+        echo "✅ VMWare Workstation Client já está instalado."
+    else
+        echo "🔄 Baixando e instalando VMWare Workstation Client..."
+        wget -O "$TMP_DIR/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb" https://download3.omnissa.com/software/CART26FQ1_LIN64_DEBPKG_2503/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb
+        echo "🔧 Instalando pacote .deb..."
+        sudo dpkg -i "$TMP_DIR/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb"
+        echo "🔧 Corrigindo dependências..."
+        sudo apt-get install -f -y
+        rm -f "$TMP_DIR/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb"
+        echo "✅ VMWare Workstation Client instalado com sucesso!"
+    fi
+    echo ""
+}
 
-# Install VMWare Workstation Client
-echo "📦 ====================================================================="
-echo "📦 INSTALANDO VMWare Workstation Client"
-echo "📦 ====================================================================="
-if command -v horizon-client &> /dev/null; then
-    echo "✅ VMWare Workstation Client já está instalado."
-else
-    echo "🔄 Baixando e instalando VMWare Workstation Client..."
-    wget -O $TMP_DIR/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb https://download3.omnissa.com/software/CART26FQ1_LIN64_DEBPKG_2503/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb
-    echo "🔧 Instalando pacote .deb..."
-    sudo dpkg -i $TMP_DIR/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb
-    echo "🔧 Corrigindo dependências..."
-    sudo apt-get install -f
-    rm -f $TMP_DIR/Omnissa-Horizon-Client-2503-8.15.0-14256322247.x64.deb
-    echo "✅ VMWare Workstation Client instalado com sucesso!"
-fi
-echo ""
+install_keepass() {
+    echo "🔐 ====================================================================="
+    echo "🔐 INSTALANDO KEEPASS"
+    echo "🔐 ====================================================================="
+    if command -v keepassxc &> /dev/null; then
+        echo "✅ KeePass já está instalado."
+    else
+        echo "🔄 Instalando KeePass via Snap..."
+        sudo snap install keepassxc
+        echo "✅ KeePass instalado com sucesso!"
+    fi
+    echo ""
+}
 
+install_terminator() {
+    echo "🖥️ ====================================================================="
+    echo "🖥️ INSTALANDO TERMINATOR"
+    echo "🖥️ ====================================================================="
+    if command -v terminator &> /dev/null; then
+        echo "✅ Terminator já está instalado."
+    else
+        echo "🔄 Instalando Terminator..."
+        sudo apt-get update
+        sudo apt-get install -y terminator
+        echo "✅ Terminator instalado com sucesso!"
+    fi
+    echo ""
+}
 
-# Install KeePass
-echo "🔐 ====================================================================="
-echo "🔐 INSTALANDO KEEPASS"
-echo "🔐 ====================================================================="
-if command -v keepassxc &> /dev/null; then
-    echo "✅ KeePass já está instalado."
-else
-    echo "🔄 Instalando KeePass via Snap..."
-    sudo snap install keepassxc
-    echo "✅ KeePass instalado com sucesso!"
-fi
-echo ""
+configure_bashrc_git_branch() {
+    echo "⚙️ ====================================================================="
+    echo "⚙️ CONFIGURANDO BASHRC PARA EXIBIR BRANCH DO GIT"
+    echo "⚙️ ====================================================================="
 
+    if grep -q "parse_git_branch" ~/.bashrc; then
+        echo "✅ Configuração do git branch já existe no bashrc."
+    else
+        echo "🔄 Adicionando configuração do git branch no bashrc..."
 
-# Install Terminator
-echo "🖥️ ====================================================================="
-echo "🖥️ INSTALANDO TERMINATOR"
-echo "🖥️ ====================================================================="
-if command -v terminator &> /dev/null; then
-    echo "✅ Terminator já está instalado."
-else
-    echo "🔄 Instalando Terminator..."
-    sudo apt-get update
-    sudo apt-get install -y terminator
-    echo "✅ Terminator instalado com sucesso!"
-fi
-echo ""
-
-
-# Configure bashrc to show git branch
-echo "⚙️ ====================================================================="
-echo "⚙️ CONFIGURANDO BASHRC PARA EXIBIR BRANCH DO GIT"
-echo "⚙️ ====================================================================="
-
-# Check if git branch function already exists in bashrc
-if grep -q "parse_git_branch" ~/.bashrc; then
-    echo "✅ Configuração do git branch já existe no bashrc."
-else
-    echo "🔄 Adicionando configuração do git branch no bashrc..."
-    
-    # Add git branch function and PS1 configuration
-    cat >> ~/.bashrc << 'EOF'
+        cat >> ~/.bashrc << 'EOF'
 
 # Function to get current git branch
 parse_git_branch() {
@@ -213,48 +212,111 @@ parse_git_branch() {
 # Custom PS1 with git branch support (preserving default colors)
 export PS1="\[\033[32m\]\u@\h\[\033[00m\]:\[\033[34m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\]$ "
 EOF
-    
-    echo "✅ Configuração do git branch adicionada ao bashrc!"
-    echo "ℹ️  Reinicie o terminal ou execute 'source ~/.bashrc' para aplicar as mudanças."
+
+        echo "✅ Configuração do git branch adicionada ao bashrc!"
+        echo "ℹ️  Reinicie o terminal ou execute 'source ~/.bashrc' para aplicar as mudanças."
+    fi
+    echo ""
+}
+
+install_docker() {
+    echo "🐳 ====================================================================="
+    echo "🐳 INSTALANDO DOCKER"
+    echo "🐳 ====================================================================="
+
+    if command -v docker &> /dev/null; then
+        echo "✅ Docker já está instalado."
+    else
+        echo "🔄 Instalando Docker..."
+
+        sudo apt remove -y docker docker-engine docker.io containerd runc
+
+        sudo apt-get update
+
+        sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        sudo apt-get update
+
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+        sudo usermod -aG docker "$USER"
+
+        echo "✅ Docker instalado com sucesso!"
+        echo "ℹ️  Faça logout/login para aplicar o grupo docker na sessão atual."
+    fi
+    echo ""
+}
+
+if [ $# -eq 0 ]; then
+    echo "❌ Erro: informe um alvo obrigatório."
+    echo ""
+    print_usage
+    exit 1
 fi
-echo ""
 
+TARGET="$1"
+shift
 
-# Install Docker
-echo "🐳 =====================================================================
-echo "🐳 INSTALANDO DOCKER"
-echo "🐳 =====================================================================
-
-# Check if Docker is already installed"
-if command -v docker &> /dev/null; then
-    echo "✅ Docker já está instalado."
-else
-    echo "🔄 Instalando Docker..."
-    
-    # Uninstall any old versions of Docker
-    sudo apt remove docker docker-engine docker.io containerd runc
-
-    # Update package index
-    sudo apt-get update
-    
-    # Install required packages
-    sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-    
-    # Add Docker's official GPG key
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    
-    # Set up the stable repository
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    
-    # Update package index again
-    sudo apt-get update
-    
-    # Install Docker Engine, CLI, and Containerd
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-    
-    # Add current user to the docker group
-    sudo usermod -aG docker $USER
-    newgrp docker
-
-    echo "✅ Docker instalado com sucesso!"
+if [ "$TARGET" = "-h" ] || [ "$TARGET" = "--help" ] || [ "$TARGET" = "help" ]; then
+    print_usage
+    exit 0
 fi
+
+UPDATE_DBEAVER=false
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --update)
+            UPDATE_DBEAVER=true
+            shift
+            ;;
+        --help|-h)
+            print_usage
+            exit 0
+            ;;
+        *)
+            echo "❌ Opção inválida: $1"
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
+if [ "$UPDATE_DBEAVER" = "true" ] && [ "$TARGET" != "dbeaver" ]; then
+    echo "❌ A opção --update só pode ser usada com o alvo dbeaver."
+    exit 1
+fi
+
+case "$TARGET" in
+    chrome)
+        install_chrome
+        ;;
+    dbeaver)
+        install_dbeaver "$UPDATE_DBEAVER"
+        ;;
+    vmware-client|vmware|horizon)
+        install_vmware_client
+        ;;
+    keepass)
+        install_keepass
+        ;;
+    terminator)
+        install_terminator
+        ;;
+    bashrc-git-branch|git-branch|bashrc)
+        configure_bashrc_git_branch
+        ;;
+    docker)
+        install_docker
+        ;;
+    *)
+        echo "❌ Alvo inválido: $TARGET"
+        echo ""
+        print_usage
+        exit 1
+        ;;
+esac

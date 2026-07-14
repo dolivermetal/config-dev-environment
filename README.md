@@ -39,6 +39,14 @@ Fluxo Linux atual instala:
 - IntelliJ IDEA (multiplas versoes)
 - Certificados SSL corporativos
 
+Instalacao isolada de aplicacoes Linux agora exige alvo obrigatorio:
+
+```bash
+./linux/install-custom-apps.sh <alvo>
+./linux/install-custom-apps.sh dbeaver
+./linux/install-custom-apps.sh dbeaver --update
+```
+
 ### Windows
 
 No Windows, o escopo foi limitado para Java e IntelliJ.

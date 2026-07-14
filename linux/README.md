@@ -75,6 +75,34 @@ Importa certificados SSL em todas as versões do Java:
 - Importação em todas as versões do Java
 - Logs detalhados do processo
 
+### 5. Script de Aplicações Customizadas (`install-custom-apps.sh`)
+
+Instala uma única aplicação/configuração por execução (alvo obrigatório):
+
+```bash
+./install-custom-apps.sh <alvo>
+```
+
+**Alvos suportados:**
+- `chrome`
+- `dbeaver` (aceita `--update`)
+- `vmware-client` (aliases: `vmware`, `horizon`)
+- `keepass`
+- `terminator`
+- `bashrc-git-branch` (aliases: `git-branch`, `bashrc`)
+- `docker`
+
+**Exemplos:**
+```bash
+./install-custom-apps.sh dbeaver
+./install-custom-apps.sh dbeaver --update
+./install-custom-apps.sh docker
+```
+
+```bash
+./install-custom-apps.sh --help
+```
+
 
 ## 🎯 Comandos Úteis Pós-Instalação
 
