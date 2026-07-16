@@ -4,7 +4,9 @@ Scripts PowerShell para instalação no Windows com escopo controlado.
 
 ## Escopo
 
-- Instala Java OpenJDK nas versões 24 e 26.
+- Instala Java OpenJDK nas versões 21, 25 e 26.
+- Importa certificados de `..\\certs` para todas as JDKs instaladas.
+- Importa certificados para o store `CurrentUser\\Root` do Windows (usado pelo Chrome).
 - Permite alternar versão ativa do Java por variáveis de ambiente do usuário.
 - Baixa e descompacta IntelliJ IDEA Community 2026.1 em `USERPROFILE\\opt\\idea`.
 - Cria atalho no Menu Iniciar para o IntelliJ.
@@ -12,7 +14,7 @@ Scripts PowerShell para instalação no Windows com escopo controlado.
 
 ## Não faz parte do escopo Windows
 
-Este fluxo **não** instala aplicações do script Linux, como Chrome, KeePassXC, DBeaver e certificados.
+Este fluxo **não** instala aplicações do script Linux, como Chrome, KeePassXC e DBeaver.
 
 ## Execução
 
@@ -28,6 +30,18 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```powershell
 # Instalar Java apenas
 .\windows\install-java.ps1 -Versions 24,26
+
+# Instalar certificados (Java + Chrome/Windows)
+.\windows\install-certs.ps1
+
+# Instalar certificados com InstallRoot customizado
+.\windows\install-certs.ps1 -InstallRoot "D:\tools\java"
+
+# Instalar certificados apenas no Java
+.\windows\install-certs.ps1 -SkipChrome
+
+# Instalar certificados apenas no store do Chrome/Windows
+.\windows\install-certs.ps1 -SkipJava
 
 # Listar versões Java instaladas
 .\windows\set-java-version.ps1 -List

@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string[]]$Versions = @('26'),
+    [string[]]$Versions = @('21','25','26'),
     [string]$InstallRoot = "$env:USERPROFILE\opt\java",
     [string]$TempDir = "$PSScriptRoot\tmp",
     [switch]$SkipSetDefault
@@ -16,9 +16,16 @@ function Resolve-Uri {
     $ea = $null
 
     switch ($Major) {
+        '21' {
+            $ga = "https://download.oracle.com/java/21/archive/jdk-21.0.10_windows-x64_bin.zip"
+            break
+        }
+        '25' {
+            $ga = "https://download.oracle.com/java/25/archive/jdk-25.0.2_windows-x64_bin.zip"
+            break
+        }
         '26' {
-            $ga = "https://download.java.net/java/GA/jdk26/c3cc523845074aa0af4f5e1e1ed4151d/35/GPL/openjdk-26_windows-x64_bin.zip"
-            $ea = "https://download.java.net/java/early_access/jdk26/35/GPL/openjdk-26-ea+35_windows-x64_bin.zip"
+            $ga = "https://download.oracle.com/java/26/archive/jdk-26_windows-x64_bin.zip"
             break
         }
         default {
