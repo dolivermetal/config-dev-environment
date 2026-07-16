@@ -7,6 +7,7 @@ Este repositório contém scripts automatizados para configuração de ambiente 
 ```
 config-dev-environment/
 ├── linux/
+│   ├── tmp/                    # Diretório temporário para downloads
 │   ├── install-all.sh          # Script principal (orquestrador)
 │   ├── install-certs.sh        # Importação de certificados SSL
 |   ├── install-custom-apps.sh  # Instalação de softwares diversos
@@ -14,13 +15,15 @@ config-dev-environment/
 │   ├── install-java.sh         # Instalação de múltiplas versões do Java
 |   └── README.md               # Documentacao da trilha Linux
 ├── windows/
+│   ├── tmp/                    # Diretório temporário para downloads
+|   ├── custom-powershell.ps1   # Customização do terminal
 │   ├── install-all.ps1         # Orquestrador Windows
-│   ├── install-java.ps1        # Instala Java 24 e 26 (OpenJDK)
-│   ├── set-java-version.ps1    # Alterna JAVA_HOME/PATH do usuario
+│   ├── install-certs.ps1       # Instalação de certificados SSL
 │   ├── install-intellij.ps1    # Instala IntelliJ 2026.1 + atalho no Menu Iniciar
+│   ├── install-java.ps1        # Instala Java 21, 25 e 26 (OpenJDK)
+│   ├── set-java-version.ps1    # Alterna JAVA_HOME/PATH do usuario
 │   └── README.md               # Documentacao da trilha Windows
-├── certs/                      # Certificados SSL corporativos
-└── tmp/                        # Diretório temporário para downloads
+└── certs/                      # Certificados SSL corporativos
 ```
 
 ## 🚀 Escolha do Sistema Operacional
@@ -57,7 +60,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```
 
 Fluxo Windows instala:
-- Java Temurin/OpenJDK nas versoes 24 e 26
+- Java OpenJDK nas versoes 21, 25 e 26
 - Comando para alternar versao ativa do Java (JAVA_HOME e PATH do usuario)
 - IntelliJ IDEA Community 2026.1 em USERPROFILE\opt\idea
 - Atalho executavel no Menu Iniciar
@@ -93,6 +96,9 @@ keytool -list -keystore $JAVA_HOME/lib/security/cacerts
 # Alternar Java ativo
 .\windows\set-java-version.ps1 -Version 24
 .\windows\set-java-version.ps1 -Version 26
+
+# Instalar certificados (Java + Chrome/Windows)
+.\windows\install-certs.ps1
 
 # Instalar apenas IntelliJ
 .\windows\install-intellij.ps1 -Version 2026.1
