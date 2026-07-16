@@ -17,10 +17,10 @@ declare -A JAVA_VERSIONS=(
     ["12"]="jdk-12.0.2"
     ["14"]="jdk-14.0.2"
     ["17"]="jdk-17.0.15"
-    ["21"]="jdk-21.0.7"
+    ["21"]="jdk-21.0.11"
     ["24"]="jdk-24.0.1"
-    ["25"]="jdk-25.0.2"
-    ["26"]="jdk-26"
+    ["25"]="jdk-25.0.3"
+    ["26"]="jdk-26.0.1"
 )
 
 # Create Java installation directory
