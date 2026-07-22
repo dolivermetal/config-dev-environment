@@ -84,6 +84,16 @@ elseif (-not (Get-Command Register-GitBasicCompletion -ErrorAction SilentlyConti
             }
     }
 }
+
+# Habilita autocomplete do kubectl quando disponivel.
+if (Get-Command kubectl -ErrorAction SilentlyContinue) {
+    try {
+        kubectl completion powershell | Out-String | Invoke-Expression
+    }
+    catch {
+        Write-Verbose "Nao foi possivel habilitar autocomplete do kubectl no profile: $($_.Exception.Message)"
+    }
+}
 # <<< custom-powershell <<<
 '@
 
@@ -139,6 +149,26 @@ if ($hasPoshGit) {
 }
 else {
     Write-Warning "Autocomplete avancado nao foi habilitado via posh-git. O fallback basico no profile continuara disponivel."
+}
+
+Write-Host ""
+Write-Host "====================================================================="
+Write-Host "CONFIGURANDO AUTOCOMPLETE KUBECTL"
+Write-Host "====================================================================="
+
+$hasKubectl = $null -ne (Get-Command kubectl -ErrorAction SilentlyContinue)
+
+if ($hasKubectl) {
+    try {
+        kubectl completion powershell | Out-String | Invoke-Expression
+        Write-Host "Autocomplete de kubectl habilitado na sessao atual."
+    }
+    catch {
+        Write-Warning "kubectl encontrado, mas nao foi possivel habilitar autocomplete agora: $($_.Exception.Message)"
+    }
+}
+else {
+    Write-Warning "kubectl nao encontrado no PATH. Instale o kubectl para habilitar autocomplete."
 }
 
 Write-Host ""
