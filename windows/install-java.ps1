@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string[]]$Versions = @('21','25','26'),
+    [string[]]$Versions = @('14','17','21','25','26'),
     [string]$InstallRoot = "$env:USERPROFILE\opt\java",
     [string]$TempDir = "$PSScriptRoot\tmp",
     [switch]$SkipSetDefault
@@ -13,9 +13,17 @@ function Resolve-Uri {
     param([Parameter(Mandatory = $true)][string]$Major)
 
     $ga = $null
-    $ea = $null
+    $manualFileName = $null
 
     switch ($Major) {
+        '14' {
+            $manualFileName = 'jdk-14.0.2_windows-x64_bin.zip'
+            break
+        }
+        '17' {
+            $manualFileName = 'jdk-17.0.19_windows-x64_bin.zip'
+            break
+        }
         '21' {
             $ga = "https://download.oracle.com/java/21/archive/jdk-21.0.10_windows-x64_bin.zip"
             break
@@ -33,15 +41,22 @@ function Resolve-Uri {
         }
     }
 
+    if (-not [string]::IsNullOrWhiteSpace($manualFileName)) {
+        return [PSCustomObject]@{
+            Uri            = $ga
+            ManualFileName = $manualFileName
+        }
+    }
+
     try {
         Invoke-WebRequest -Uri $ga -Method Head -UseBasicParsing -TimeoutSec 25 | Out-Null
-        return $ga
+        return [PSCustomObject]@{
+            Uri            = $ga
+            ManualFileName = $manualFileName
+        }
     }
     catch {
-        if (-not [string]::IsNullOrWhiteSpace($ea)) {
-            Write-Warning "Sem artefato GA para Java $Major. Tentando EA."
-            return $ea
-        }
+        Write-Warning "Sem artefato GA para Java $Major."
         throw "Nao foi possivel resolver URL de download para Java $Major"
     }
 }
@@ -85,17 +100,39 @@ foreach ($version in $Versions) {
         continue
     }
 
-    $uri = Resolve-Uri -Major $version
-    $zipPath = Join-Path $TempDir "jdk-$version.zip"
+    $downloadSpec = Resolve-Uri -Major $version
+    $uri = $downloadSpec.Uri
+    $manualFileName = $downloadSpec.ManualFileName
+
+    if ([string]::IsNullOrWhiteSpace($manualFileName)) {
+        $zipPath = Join-Path $TempDir "jdk-$version.zip"
+    }
+    else {
+        $zipPath = Join-Path $TempDir $manualFileName
+    }
+
     $extractPath = Join-Path $TempDir "extract-jdk-$version"
+    $cleanupZipAfterInstall = $false
 
     Write-Host ("Instalando Java {0}..." -f $version)
     Write-Host ("Download: {0}" -f $uri)
 
-    if (Test-Path -Path $zipPath) { Remove-Item -Path $zipPath -Force }
     if (Test-Path -Path $extractPath) { Remove-Item -Path $extractPath -Recurse -Force }
 
-    Invoke-WebRequest -Uri $uri -OutFile $zipPath -UseBasicParsing
+    if (Test-Path -Path $zipPath) {
+        Write-Host ("Arquivo encontrado em tmp: {0}" -f $zipPath)
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($manualFileName)) {
+        Write-Warning ("Arquivo {0} nao encontrado em tmp." -f $manualFileName)
+        Write-Warning ("Para Java {0}, o download deve ser feito manualmente em:" -f $version)
+        Write-Warning 'https://www.oracle.com/java/technologies/downloads/archive'
+        continue
+    }
+    else {
+        Invoke-WebRequest -Uri $uri -OutFile $zipPath -UseBasicParsing
+        $cleanupZipAfterInstall = $true
+    }
+
     Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
 
     $jdkDir = Get-ExtractedJdkDirectory -ExtractRoot $extractPath
@@ -110,7 +147,9 @@ foreach ($version in $Versions) {
         throw "Falha ao instalar Java $version. Executavel nao encontrado em $javaExe"
     }
 
-    Remove-Item -Path $zipPath -Force
+    if ($cleanupZipAfterInstall -and (Test-Path -Path $zipPath)) {
+        Remove-Item -Path $zipPath -Force
+    }
     Remove-Item -Path $extractPath -Recurse -Force
 
     Write-Host ("Java {0} instalado com sucesso em {1}" -f $version, $targetDir)
