@@ -20,7 +20,7 @@ config-dev-environment/
 │   ├── install-all.ps1         # Orquestrador Windows
 │   ├── install-certs.ps1       # Instalação de certificados SSL
 │   ├── install-intellij.ps1    # Instala IntelliJ 2026.1 + atalho no Menu Iniciar
-│   ├── install-java.ps1        # Instala Java 21, 25 e 26 (OpenJDK)
+│   ├── install-java.ps1        # Instala várias versões do Java
 │   ├── set-java-version.ps1    # Alterna JAVA_HOME/PATH do usuario
 │   └── README.md               # Documentacao da trilha Windows
 └── certs/                      # Certificados SSL corporativos
@@ -60,7 +60,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```
 
 Fluxo Windows instala:
-- Java OpenJDK nas versoes 21, 25 e 26
+- Java OpenJDK em diversas versões
 - Comando para alternar versao ativa do Java (JAVA_HOME e PATH do usuario)
 - IntelliJ IDEA Community 2026.1 em USERPROFILE\opt\idea
 - Atalho executavel no Menu Iniciar

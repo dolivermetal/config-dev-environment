@@ -4,7 +4,7 @@ Scripts PowerShell para instalação no Windows com escopo controlado.
 
 ## Escopo
 
-- Instala Java OpenJDK nas versões 21, 25 e 26.
+- Instala Java em varias versões.
 - Importa certificados de `..\\certs` para todas as JDKs instaladas.
 - Importa certificados para o store `CurrentUser\\Root` do Windows (usado pelo Chrome).
 - Permite alternar versão ativa do Java por variáveis de ambiente do usuário.

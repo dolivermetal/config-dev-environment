@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string[]]$Versions = @('14','17','21','25','26'),
+    [string[]]$Versions = @('11','14','17','21','25','26'),
     [string]$InstallRoot = "$env:USERPROFILE\opt\java",
     [string]$TempDir = "$PSScriptRoot\tmp",
     [switch]$SkipSetDefault
@@ -16,6 +16,10 @@ function Resolve-Uri {
     $manualFileName = $null
 
     switch ($Major) {
+        '11' {
+            $manualFileName = 'jdk-11.0.31_windows-x64_bin.zip'
+            break
+        }
         '14' {
             $manualFileName = 'jdk-14.0.2_windows-x64_bin.zip'
             break
